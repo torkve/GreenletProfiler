@@ -1,12 +1,11 @@
 import os
 import sys
 from distutils.ccompiler import new_compiler
-from setuptools import Extension
 from setuptools import setup
 
 # Hack to silence atexit traceback in newer python versions.
 try:
-    import multiprocessing
+    import multiprocessing  # noqa
 except ImportError:
     pass
 
@@ -20,28 +19,11 @@ user_libraries = []
 compile_args = []
 link_args = []
 
-if os.name == 'posix' and sys.platform != 'darwin': 
+if os.name == 'posix' and sys.platform != 'darwin':
     compiler = new_compiler()
     if compiler.has_function('timer_create', libraries=('rt',)):
         user_macros.append(('LIB_RT_AVAILABLE', '1'))
         user_libraries.append('rt')
-
-yappi_extension = Extension(
-    '_GreenletProfiler_yappi',
-    sources=[
-        '_vendorized_yappi/_yappi.c',
-        '_vendorized_yappi/callstack.c',
-        '_vendorized_yappi/hashtab.c',
-        '_vendorized_yappi/mem.c',
-        '_vendorized_yappi/freelist.c',
-        '_vendorized_yappi/timing.c'],
-    include_dirs=['_vendorized_yappi'],
-    define_macros=user_macros,
-    libraries=user_libraries,
-    extra_compile_args=compile_args,
-    extra_link_args=link_args)
-
-# End of setup code adapted from yappi.
 
 classifiers = """\
 Intended Audience :: Developers
@@ -68,16 +50,13 @@ if 'nosetests' in sys.argv:
 
 setup(
     name='GreenletProfiler',
-    version='0.1',
+    version='0.1.1',
     packages=packages,
-    # Include Yappi's C extension, _yappi.so, which we've renamed to
-    # _GreenletProfiler_yappi.so.
-    ext_modules=[yappi_extension],
+    ext_modules=[],
     # Include yappi.py along with our own GreenletProfiler.py.
     py_modules=[
-        '_vendorized_yappi/yappi',
-        '_vendorized_yappi/__init__',
-        'GreenletProfiler'],
+        'GreenletProfiler',
+    ],
     description=description,
     long_description=long_description,
     author='A. Jesse Jiryu Davis',
@@ -86,7 +65,7 @@ setup(
     license='http://www.apache.org/licenses/LICENSE-2.0',
     classifiers=filter(None, classifiers.split('\n')),
     keywords='greenlet gevent profiler asynchronous',
-    install_requires=['greenlet'],
+    install_requires=['greenlet', 'yappi'],
     # use python setup.py nosetests to test
     setup_requires=['nose'],
     test_suite='nose.collector',
